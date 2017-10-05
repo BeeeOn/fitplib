@@ -30,6 +30,17 @@ add_definitions(-DGIT_ID="${GIT_ID}" -std=c++11 -Wall -pedantic -Wextra -lfitp)
 
 add_subdirectory(fitp)
 
+set(CPACK_PACKAGE_VERSION_MAJOR "0")
+set(CPACK_PACKAGE_VERSION_MINOR "9")
+set(CPACK_PACKAGE_VERSION_PATCH "1")
+set(CPACK_PACKAGE_NAME "fitplib")
+set(CPACK_PACKAGE_VENDOR "Brno University of Technology")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+	"FIT Protocol - experimental sensoric network protocol implementation")
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
+set(CPACK_RPM_PACKAGE_LICENSE "BSD")
+include(CPack)
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/fitp/
 DESTINATION include/fitp
 FILES_MATCHING PATTERN "*.h")
