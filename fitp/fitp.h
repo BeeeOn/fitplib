@@ -175,4 +175,6 @@ void fitp_set_config_path(const std::string &configPath);
 
 double fitp_get_measured_noise();
 
+void fitp_set_nid(uint32_t nid);
+
 //#endif

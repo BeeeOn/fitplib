@@ -308,3 +308,11 @@ bool isJoinMessage(const std::vector <uint8_t> &data)
 {
 	return data.at(0) == FITP_JOIN_REQUEST;
 }
+
+void fitp_set_nid(uint32_t nid)
+{
+	GLOBAL_STORAGE.nid[3] = (nid >> 24) & 0xFF;
+	GLOBAL_STORAGE.nid[2] = (nid >> 16) & 0xFF;
+	GLOBAL_STORAGE.nid[1] = (nid >> 8) & 0xFF;
+	GLOBAL_STORAGE.nid[0] = nid & 0xFF;
+}
