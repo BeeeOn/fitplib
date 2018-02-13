@@ -63,6 +63,11 @@ extern bool array_cmp (uint8_t* array1, uint8_t* array2);
 void fitp_init (struct PHY_init_t *phy_params, struct LINK_init_t *link_params);
 
 /**
+ * Returns a protocol version.
+ */
+std::string fitp_version();
+
+/**
  * Sends data.
  * @param tocoord		Destination coordinator ID.
  * @param toed 			Destination end device ID.
@@ -140,11 +145,6 @@ void fitp_received_data(std::vector<uint8_t> &data);
  * @param edid	Destination end device ID.
  */
 void fitp_accepted_device(std::vector<uint8_t> edid);
-
-std::string fitp_version()
-{
-	return GIT_ID;
-}
 
 std::map<uint64_t, DeviceType> fitp_device_list();
 void print_device_table();
