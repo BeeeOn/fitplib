@@ -635,7 +635,6 @@ void HW_irq1_occurred (void)
 			PHY_STORAGE.irq0_enabled = true;
 		}
 
-		cout << "len: " << dec << unsigned(received_len) << endl;
 		if (received_len == 0 || received_len - 1 != PHY_STORAGE.received_packet[0]) {
 			//cout << "empty\n ";
 			return;
@@ -673,7 +672,6 @@ void timer_interrupt_generator_f ()
  */
 void PHY_init (struct PHY_init_t* phy_params)
 {
-	std::cout << "in PHY_init\n";
 	HW_init ();
 	PHY_STORAGE.irq_interrupt_deamon = std::thread (irq_interrupt_deamon_f);
 	PHY_STORAGE.timer_interrupt_generator = std::thread (timer_interrupt_generator_f);
@@ -715,8 +713,6 @@ void PHY_init (struct PHY_init_t* phy_params)
 	send_reload_radio ();
 	PHY_STORAGE.irq0_enabled = true;
 	PHY_STORAGE.irq1_enabled = true;
-
-	std::cout << "out PHY_init\n";
 }
 
 

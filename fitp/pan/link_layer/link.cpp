@@ -659,7 +659,7 @@ void PHY_process_packet (uint8_t* data, uint8_t len)
 	uint8_t transfer_type = data[0] & 0x0f;
 	// JOIN packet processing before NID check
 	if (transfer_type == LINK_DATA_JOIN_REQUEST && packet_type == LINK_DATA_TYPE) {
-		printf("JOIN REQUEST received\n");
+		D_LINK printf("JOIN REQUEST received\n");
 		// JOIN REQUEST message, send ACK JOIN REQUEST message
 		if(!NET_is_set_pair_mode()) {
 			D_LINK printf("Not in a PAIR MODE!\n");
@@ -668,7 +668,7 @@ void PHY_process_packet (uint8_t* data, uint8_t len)
 		uint8_t ack_packet[LINK_HEADER_SIZE];
 		gen_header (ack_packet, false, true, data + 6, LINK_ACK_TYPE,
 								LINK_ACK_JOIN_REQUEST);
-		printf("ACK JOIN REQUEST\n");
+		D_LINK printf("ACK JOIN REQUEST\n");
 		PHY_send_with_cca (ack_packet, LINK_HEADER_SIZE);
 		// send JOIN REQUEST ROUTE message with RSSI
 		uint8_t RSSI = PHY_get_measured_noise();
@@ -744,7 +744,6 @@ uint8_t LINK_cid_mask (uint8_t address)
  */
 void LINK_init (struct PHY_init_t* phy_params, struct LINK_init_t* link_params)
 {
-	std::cout << "in LINK_init\n";
 	D_LINK printf("LINK_init\n");
 	PHY_init(phy_params);
 	LINK_STORAGE.tx_max_retries = link_params->tx_max_retries;

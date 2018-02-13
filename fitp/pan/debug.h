@@ -1,11 +1,12 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#define DEBUG_NET
-#define DEBUG_LINK
-#define DEBUG_PHY
-#define DEBUG_LOG
-#define DEBUG_GLOBAL
+// debug prints will not be displayed
+//#define DEBUG_NET
+//#define DEBUG_LINK
+//#define DEBUG_PHY
+//#define DEBUG_LOG
+//#define DEBUG_GLOBAL
 
 //debug pre vsetko ostatne
 #ifdef DEBUG_GLOBAL

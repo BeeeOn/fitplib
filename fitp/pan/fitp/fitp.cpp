@@ -221,7 +221,6 @@ void fitp_joining_disable ()
  */
 void fitp_listen(int timeout)
 {
-	printf("fitp_listen()\n");
 	fitp_joining_enable(timeout);
 }
 
@@ -231,7 +230,6 @@ void fitp_listen(int timeout)
  */
 void fitp_accepted_device(std::vector<uint8_t> edid)
 {
-	printf("fitp_accepted_device()\n");
 	uint8_t id[EDID_LENGTH];
 	for (int i = 0; i < EDID_LENGTH; i++)
 		id[i] = edid.at(i);
@@ -246,7 +244,6 @@ void fitp_accepted_device(std::vector<uint8_t> edid)
  */
 bool fitp_unpair(uint32_t edid)
 {
-	printf("fitp_unpair()\n");
 	uint8_t id[EDID_LENGTH];
 	for (int i = EDID_LENGTH - 1; i >= 0; i--) {
 		id[i] = edid & 0xff;
@@ -257,7 +254,6 @@ bool fitp_unpair(uint32_t edid)
 
 uint64_t convert_array_to_number(uint8_t edid[4])
 {
-	printf("EDID: %02x %02x %02x %02x\n", edid[0], edid[1], edid[2], edid[3]);
 	uint64_t edid_number = 0;
 	for (uint8_t i = 0; i < EDID_LENGTH - 1; i++)
 	{
@@ -271,7 +267,6 @@ uint64_t convert_array_to_number(uint8_t edid[4])
 
 std::map<uint64_t, DeviceType> fitp_device_list()
 {
-	printf("fitp_device_list()\n");
 	std::map<uint64_t, DeviceType> device_info;
 	uint8_t edid[EDID_LENGTH] = {0xed, 0x00, 0x00, 0x02};
 	add_device (edid, 1, 0, false, false);
@@ -282,11 +277,11 @@ std::map<uint64_t, DeviceType> fitp_device_list()
 			uint64_t edid_number = convert_array_to_number(GLOBAL_STORAGE.devices[i].edid);
 			if (GLOBAL_STORAGE.devices[i].coord) {
 				device_info.emplace(edid_number, COORDINATOR);
-				printf("COORD was inserted\n");
+				//printf("COORD was inserted\n");
 			}
 			else {
 				device_info.emplace(edid_number, END_DEVICE);
-				printf("ED was inserted\n");
+				//printf("ED was inserted\n");
 			}
 		}
 	}
