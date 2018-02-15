@@ -152,6 +152,20 @@ void fitp_received_data(std::vector<uint8_t> &data);
  */
 void fitp_accepted_device(std::vector<uint8_t> edid);
 
+/**
+ * Checks if message type is DATA or DATA_DR.
+ * @param data	Data containing message type.
+ * @return Return true, if message type is DATA or DATA_DR, false otherwise.
+ */
+bool isDataMessage(const std::vector <uint8_t> &data);
+
+/**
+ * Checks if message type is JOIN_REQUEST.
+ * @param data	Data containing message type.
+ * @return Return true, if message type is JOIN_REQUEST, false otherwise.
+ */
+bool isJoinMessage(const std::vector <uint8_t> &data);
+
 std::map<uint64_t, DeviceType> fitp_device_list();
 void print_device_table();
 bool save_device_table();

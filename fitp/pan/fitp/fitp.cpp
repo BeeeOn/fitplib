@@ -303,3 +303,13 @@ void fitp_set_config_path(const std::string &configPath)
 {
 	GLOBAL_STORAGE.device_table_path = configPath;
 }
+
+bool isDataMessage(const std::vector <uint8_t> &data)
+{
+	return (data.at(0) == FITP_DATA || data.at(0) == FITP_DATA_DR);
+}
+
+bool isJoinMessage(const std::vector <uint8_t> &data)
+{
+	return data.at(0) == FITP_JOIN_REQUEST;
+}
