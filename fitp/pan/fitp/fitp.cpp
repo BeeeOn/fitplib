@@ -140,32 +140,24 @@ void NET_received (const uint8_t, const uint8_t [EDID_LENGTH],
 
 void NET_save_msg_info(uint8_t msg_type, uint8_t device_type, uint8_t* sedid, uint8_t* data, uint8_t len)
 {
-	printf("NET_save_msg_info() 1\n");
-	for (uint8_t i = 0; i < MAX_MESSAGES; i++) {
-		if (received_messages[i].empty) {
-			received_messages[i].empty = false;
-			if (msg_type == FITP_JOIN_REQUEST)
-				received_messages[i].msg_type = FITP_JOIN_REQUEST;
-			if (msg_type == FITP_DATA)
-				received_messages[i].msg_type = FITP_DATA;
-			received_messages[i].device_type = device_type;
-			for (uint8_t k = 0; k < EDID_LENGTH; k++) {
-				received_messages[i].sedid[k] = sedid[k];
-			}
-			for (uint8_t l = 0; l < len; l++)
-				received_messages[i].data[l] = data[l];
-			received_messages[i].len = len;
-			printf("Type: %02x DEVICE: %02x  EDID: %02x %02x %02x %02x\n", received_messages[i].msg_type, received_messages[i].device_type,
-				received_messages[i].sedid[0], received_messages[i].sedid[1], received_messages[i].sedid[2], received_messages[i].sedid[3]);
-			printf("DATA in data: ");
-			for (uint8_t m = 0; m < len; m++)
-				printf("%02x ", data[m]);
-			printf("DATA in received_messages: ");
-			for (uint8_t m = 0; m < len; m++)
-				printf("%02x ", received_messages[i].data[m]);
-			break;
-		}
-	}
+	std::unique_lock<std::mutex> lk(received_messages_mutex);
+	struct fitp_received_messages_t tmp_received_message;
+	if (msg_type == FITP_JOIN_REQUEST)
+		tmp_received_message.msg_type = FITP_JOIN_REQUEST;
+	if (msg_type == FITP_DATA)
+		tmp_received_message.msg_type = FITP_DATA;
+
+	tmp_received_message.device_type = device_type;
+
+	for (uint8_t k = 0; k < EDID_LENGTH; k++)
+		tmp_received_message.sedid[k] = sedid[k];
+
+	for (uint8_t l = 0; l < len; l++)
+		tmp_received_message.data[l] = data[l];
+
+	tmp_received_message.len = len;
+	received_messages.push_back(tmp_received_message);
+	condition_variable_received_messages.notify_all();
 }
 
 
@@ -175,20 +167,24 @@ void NET_save_msg_info(uint8_t msg_type, uint8_t device_type, uint8_t* sedid, ui
  */
 void fitp_received_data(std::vector<uint8_t> &data)
 {
-	uint8_t i = 0;
-	for (; i < MAX_MESSAGES; i++) {
-		if (!received_messages[i].empty) {
-			printf("packet was received\n");
-			received_messages[i].empty = true;
-			data.push_back(received_messages[i].msg_type);
-			data.push_back(received_messages[i].device_type);
-			data.push_back(received_messages[i].sedid[0]);
-			data.push_back(received_messages[i].sedid[1]);
-			data.push_back(received_messages[i].sedid[2]);
-			data.push_back(received_messages[i].sedid[3]);
-			for (uint8_t k = 0; k < received_messages[i].len; k++)
-				data.push_back(received_messages[i].data[k]);
-		}
+	struct fitp_received_messages_t tmp_received_message;
+	std::unique_lock<std::mutex> lk(received_messages_mutex);
+	if (received_messages.empty()) {
+		condition_variable_received_messages.wait_for(lk, std::chrono::seconds(5));
+	}
+	else {
+		tmp_received_message = received_messages.front();
+		received_messages.pop_front();
+
+		data.push_back(tmp_received_message.msg_type);
+		data.push_back(tmp_received_message.device_type);
+		data.push_back(tmp_received_message.sedid[0]);
+		data.push_back(tmp_received_message.sedid[1]);
+		data.push_back(tmp_received_message.sedid[2]);
+		data.push_back(tmp_received_message.sedid[3]);
+
+		for (uint8_t k = 0; k < tmp_received_message.len; k++)
+			data.push_back(tmp_received_message.data[k]);
 	}
 }
 

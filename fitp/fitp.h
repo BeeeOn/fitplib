@@ -16,6 +16,9 @@
 //#include "pan/net_layer/net.h"
 //#include "net_common.h"
 #include <unistd.h>
+#include <mutex>
+#include <deque>
+#include <condition_variable>
 
 /*! end device ID in case of addressing using coordinator ID */
 #define FITP_DIRECT_COORD (uint8_t*)"\x00\x00\x00\x00"
@@ -42,7 +45,6 @@ struct fitp_received_messages_t {
 	uint8_t len;
 	uint8_t sedid[4];
 	uint8_t device_type;
-	bool empty = true;
 };
 
 enum DeviceType {
@@ -51,7 +53,10 @@ enum DeviceType {
 	COORDINATOR,
 };
 
-fitp_received_messages_t received_messages[MAX_MESSAGES];
+std::deque<struct fitp_received_messages_t> received_messages;
+std::mutex received_messages_mutex;
+std::condition_variable condition_variable_received_messages;
+
 
 extern bool array_cmp (uint8_t* array1, uint8_t* array2);
 
