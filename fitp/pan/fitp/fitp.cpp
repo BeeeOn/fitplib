@@ -146,6 +146,8 @@ void NET_save_msg_info(uint8_t msg_type, uint8_t device_type, uint8_t* sedid, ui
 		tmp_received_message.msg_type = FITP_JOIN_REQUEST;
 	if (msg_type == FITP_DATA)
 		tmp_received_message.msg_type = FITP_DATA;
+	if (msg_type == FITP_DATA_DR)
+		tmp_received_message.msg_type = FITP_DATA_DR;
 
 	tmp_received_message.device_type = device_type;
 

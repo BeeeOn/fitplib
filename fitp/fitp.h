@@ -36,6 +36,7 @@
 
 enum fitp_packet_type {
 	FITP_DATA = 0x00,
+	FITP_DATA_DR = 0x01,
 	FITP_JOIN_REQUEST = 0x03
 };
 
