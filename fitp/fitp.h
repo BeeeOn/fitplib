@@ -16,6 +16,9 @@
 //#include "pan/net_layer/net.h"
 //#include "net_common.h"
 #include <unistd.h>
+#include <mutex>
+#include <deque>
+#include <condition_variable>
 
 /*! end device ID in case of addressing using coordinator ID */
 #define FITP_DIRECT_COORD (uint8_t*)"\x00\x00\x00\x00"
@@ -33,6 +36,7 @@
 
 enum fitp_packet_type {
 	FITP_DATA = 0x00,
+	FITP_DATA_DR = 0x01,
 	FITP_JOIN_REQUEST = 0x03
 };
 
@@ -42,7 +46,6 @@ struct fitp_received_messages_t {
 	uint8_t len;
 	uint8_t sedid[4];
 	uint8_t device_type;
-	bool empty = true;
 };
 
 enum DeviceType {
@@ -51,7 +54,10 @@ enum DeviceType {
 	COORDINATOR,
 };
 
-fitp_received_messages_t received_messages[MAX_MESSAGES];
+std::deque<struct fitp_received_messages_t> received_messages;
+std::mutex received_messages_mutex;
+std::condition_variable condition_variable_received_messages;
+
 
 extern bool array_cmp (uint8_t* array1, uint8_t* array2);
 
@@ -61,6 +67,11 @@ extern bool array_cmp (uint8_t* array1, uint8_t* array2);
  * @param link_params		Parameters of link layer.
  */
 void fitp_init (struct PHY_init_t *phy_params, struct LINK_init_t *link_params);
+
+/**
+ * Returns a protocol version.
+ */
+std::string fitp_version();
 
 /**
  * Sends data.
@@ -141,10 +152,19 @@ void fitp_received_data(std::vector<uint8_t> &data);
  */
 void fitp_accepted_device(std::vector<uint8_t> edid);
 
-std::string fitp_version()
-{
-	return GIT_ID;
-}
+/**
+ * Checks if message type is DATA or DATA_DR.
+ * @param data	Data containing message type.
+ * @return Return true, if message type is DATA or DATA_DR, false otherwise.
+ */
+bool isDataMessage(const std::vector <uint8_t> &data);
+
+/**
+ * Checks if message type is JOIN_REQUEST.
+ * @param data	Data containing message type.
+ * @return Return true, if message type is JOIN_REQUEST, false otherwise.
+ */
+bool isJoinMessage(const std::vector <uint8_t> &data);
 
 std::map<uint64_t, DeviceType> fitp_device_list();
 void print_device_table();
@@ -154,5 +174,7 @@ bool fitp_is_coord(uint8_t * edid, uint8_t cid);
 void fitp_set_config_path(const std::string &configPath);
 
 double fitp_get_measured_noise();
+
+void fitp_set_nid(uint32_t nid);
 
 //#endif

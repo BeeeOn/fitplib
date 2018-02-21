@@ -158,7 +158,7 @@ bool send (uint8_t msg_type, uint8_t tocoord, uint8_t* toed,
 		return LINK_send_coord(false, &address_coord, tmp, index, transfer_type);
 	}
 	else if (msg_type_ext == PT_DATA_PAIR_MODE_ENABLED) {
-		printf("PT_DATA_PAIR_MODE_ENABLED\n");
+		D_NET printf("PT_DATA_PAIR_MODE_ENABLED\n");
 		LINK_send_broadcast(tmp, index);
 	}
 	else if ((!zero_address(toed)) && (is_for_my_child(toed))
@@ -550,7 +550,6 @@ void send_routing_table (uint8_t tocoord, uint8_t* toed, uint8_t* payload, uint8
  */
 void load_routing_table ()
 {
-	cout << "in load_routing_table\n";
 	// 1 + 2 * 64 - INFO BYTE + CID and PARENT CID (2) * maximum number of COORD (64)
 	uint8_t r_table[129];
 	int k = 0;
@@ -1075,7 +1074,6 @@ bool LINK_route (uint8_t* data, uint8_t len, uint8_t transfer_type)
  */
 void NET_init (struct PHY_init_t *phy_params, struct LINK_init_t *link_params)
 {
-	cout << "int NET_init\n";
 	LINK_init(phy_params, link_params);
 	GLOBAL_STORAGE.device_table_path = "/tmp/fitprotocold.devices";
 	GLOBAL_STORAGE.routing_enabled = true;
@@ -1105,21 +1103,16 @@ void NET_init (struct PHY_init_t *phy_params, struct LINK_init_t *link_params)
 		NET_STORAGE.received_packets[i].empty = true;
 	}
 
-	cout << "NET_init1\n";
 	if (!load_device_table ()) {
 		D_NET cout << "NET_init(): cannot load device table from "
 			<< GLOBAL_STORAGE.device_table_path << endl;
 	}
 
-	cout << "NET_init2\n";
 	load_routing_table ();
-
-	cout << "out NET_init\n";
 }
 
 void NET_set_pair_mode_timeout(uint8_t timeout)
 {
-	printf("NET_set_pair_mode_timeout()\n");
 	NET_STORAGE.pair_mode_timeout = (timeout * 1000)/50;
 	NET_STORAGE.join_cnt_overflow_value = MAX_CNT_VALUE - NET_STORAGE.pair_mode_timeout;
 }
@@ -1195,7 +1188,6 @@ void NET_accepted_device(uint8_t edid[4])
 	//uint8_t zeros[] = {0x00, 0x00, 0x00, 0x00};
 	//uint8_t result;
 	for (int i = 0; i < MAX_JOIN_MESSAGES; i++) {
-		printf("ED will be compared\n");
 		if (/*NET_STORAGE.join_info[i].valid && */array_cmp(edid, NET_STORAGE.join_info[i].edid)) {
 			/*if(NET_STORAGE.timer_counter == 0 && NET_STORAGE.join_info[i].time > NET_STORAGE.join_cnt_overflow_value)
 			{
@@ -1205,7 +1197,6 @@ void NET_accepted_device(uint8_t edid[4])
 			/*if((NET_STORAGE.join_info[i].time <= NET_STORAGE.join_cnt_overflow_value && (abs(NET_STORAGE.timer_counter - NET_STORAGE.join_info[i].time) > NET_STORAGE.pair_mode_timeout)) || (overflow_joining && NET_STORAGE.timer_counter > (NET_STORAGE.pair_mode_timeout - (MAX_CNT_VALUE - NET_STORAGE.join_info[i].time))))
 			{
 				D_NET printf("send JOIN RESPONSE\n");*/
-			printf("ED was found in join_info\n");
 			uint8_t new_parent = fitp_find_parent(NET_STORAGE.join_info, NET_STORAGE.join_info[i].edid, MAX_JOIN_MESSAGES);
 			if (new_parent == INVALID_CID)
 				return;
@@ -1215,7 +1206,6 @@ void NET_accepted_device(uint8_t edid[4])
 			//if(NET_accept_device(NET_STORAGE.join_info[new_parent].scid)) {
 			//D_NET printf("really send JOIN RESPONSE\n");
 			// set CID of a COORD
-			printf("parent for ED was found\n");
 			if (NET_STORAGE.join_info[i].device_type == 0xcc) {
 				NET_STORAGE.join_info[i].cid = find_free_cid();
 				//D_NET printf("CID: %d\n", NET_STORAGE.join_info[i].cid);
@@ -1232,7 +1222,6 @@ void NET_accepted_device(uint8_t edid[4])
 				NET_STORAGE.join_info[i].device_type == SLEEPY_ED, NET_STORAGE.join_info[i].device_type == COORD);
 			/*if(result == 0)
 				return;*/
-			printf("JOIN RESPONSE will be sent\n");
 			if (NET_STORAGE.join_info[new_parent].scid == 0)
 				send_join_response(NET_STORAGE.join_info[i].edid, NET_STORAGE.join_info[i].cid);
 			else
@@ -1358,7 +1347,6 @@ bool NET_send (uint8_t tocoord, uint8_t * toed, uint8_t * payload, uint8_t len)
  */
 bool NET_unpair(uint8_t* edid)
 {
-	printf("EDID: %02x %02x %02x %02x\n", edid[0], edid[1], edid[2], edid[3]);
 	print_device_table();
 	if (remove_device (edid)) {
 		save_device_table ();
@@ -1398,7 +1386,6 @@ void LINK_timer_counter()
 
 void LINK_save_msg_info(uint8_t* data, uint8_t len)
 {
-	printf("LINK_save_msg_info\n");
 	NET_save_msg_info((data[0] & 0xf0) >> 4, data[1], data + 6, data + 10, len - 10);
 	/*for (uint8_t i = 0; i > MAX_MESSAGES; i++) {
 		if (NET_STORAGE.received_packets[i].empty) {

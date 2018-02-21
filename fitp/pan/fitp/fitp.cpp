@@ -18,6 +18,11 @@ void fitp_init (struct PHY_init_t* phy_params, struct LINK_init_t* link_params)
 	NET_init(phy_params, link_params);
 }
 
+std::string fitp_version()
+{
+	return GIT_ID;
+}
+
 /**
  * Sends data.
  * @param tocoord		Destination coordinator ID.
@@ -135,32 +140,26 @@ void NET_received (const uint8_t, const uint8_t [EDID_LENGTH],
 
 void NET_save_msg_info(uint8_t msg_type, uint8_t device_type, uint8_t* sedid, uint8_t* data, uint8_t len)
 {
-	printf("NET_save_msg_info() 1\n");
-	for (uint8_t i = 0; i < MAX_MESSAGES; i++) {
-		if (received_messages[i].empty) {
-			received_messages[i].empty = false;
-			if (msg_type == FITP_JOIN_REQUEST)
-				received_messages[i].msg_type = FITP_JOIN_REQUEST;
-			if (msg_type == FITP_DATA)
-				received_messages[i].msg_type = FITP_DATA;
-			received_messages[i].device_type = device_type;
-			for (uint8_t k = 0; k < EDID_LENGTH; k++) {
-				received_messages[i].sedid[k] = sedid[k];
-			}
-			for (uint8_t l = 0; l < len; l++)
-				received_messages[i].data[l] = data[l];
-			received_messages[i].len = len;
-			printf("Type: %02x DEVICE: %02x  EDID: %02x %02x %02x %02x\n", received_messages[i].msg_type, received_messages[i].device_type,
-				received_messages[i].sedid[0], received_messages[i].sedid[1], received_messages[i].sedid[2], received_messages[i].sedid[3]);
-			printf("DATA in data: ");
-			for (uint8_t m = 0; m < len; m++)
-				printf("%02x ", data[m]);
-			printf("DATA in received_messages: ");
-			for (uint8_t m = 0; m < len; m++)
-				printf("%02x ", received_messages[i].data[m]);
-			break;
-		}
-	}
+	std::unique_lock<std::mutex> lk(received_messages_mutex);
+	struct fitp_received_messages_t tmp_received_message;
+	if (msg_type == FITP_JOIN_REQUEST)
+		tmp_received_message.msg_type = FITP_JOIN_REQUEST;
+	if (msg_type == FITP_DATA)
+		tmp_received_message.msg_type = FITP_DATA;
+	if (msg_type == FITP_DATA_DR)
+		tmp_received_message.msg_type = FITP_DATA_DR;
+
+	tmp_received_message.device_type = device_type;
+
+	for (uint8_t k = 0; k < EDID_LENGTH; k++)
+		tmp_received_message.sedid[k] = sedid[k];
+
+	for (uint8_t l = 0; l < len; l++)
+		tmp_received_message.data[l] = data[l];
+
+	tmp_received_message.len = len;
+	received_messages.push_back(tmp_received_message);
+	condition_variable_received_messages.notify_all();
 }
 
 
@@ -170,20 +169,24 @@ void NET_save_msg_info(uint8_t msg_type, uint8_t device_type, uint8_t* sedid, ui
  */
 void fitp_received_data(std::vector<uint8_t> &data)
 {
-	uint8_t i = 0;
-	for (; i < MAX_MESSAGES; i++) {
-		if (!received_messages[i].empty) {
-			printf("packet was received\n");
-			received_messages[i].empty = true;
-			data.push_back(received_messages[i].msg_type);
-			data.push_back(received_messages[i].device_type);
-			data.push_back(received_messages[i].sedid[0]);
-			data.push_back(received_messages[i].sedid[1]);
-			data.push_back(received_messages[i].sedid[2]);
-			data.push_back(received_messages[i].sedid[3]);
-			for (uint8_t k = 0; k < received_messages[i].len; k++)
-				data.push_back(received_messages[i].data[k]);
-		}
+	struct fitp_received_messages_t tmp_received_message;
+	std::unique_lock<std::mutex> lk(received_messages_mutex);
+	if (received_messages.empty()) {
+		condition_variable_received_messages.wait_for(lk, std::chrono::seconds(5));
+	}
+	else {
+		tmp_received_message = received_messages.front();
+		received_messages.pop_front();
+
+		data.push_back(tmp_received_message.msg_type);
+		data.push_back(tmp_received_message.device_type);
+		data.push_back(tmp_received_message.sedid[0]);
+		data.push_back(tmp_received_message.sedid[1]);
+		data.push_back(tmp_received_message.sedid[2]);
+		data.push_back(tmp_received_message.sedid[3]);
+
+		for (uint8_t k = 0; k < tmp_received_message.len; k++)
+			data.push_back(tmp_received_message.data[k]);
 	}
 }
 
@@ -218,7 +221,6 @@ void fitp_joining_disable ()
  */
 void fitp_listen(int timeout)
 {
-	printf("fitp_listen()\n");
 	fitp_joining_enable(timeout);
 }
 
@@ -228,7 +230,6 @@ void fitp_listen(int timeout)
  */
 void fitp_accepted_device(std::vector<uint8_t> edid)
 {
-	printf("fitp_accepted_device()\n");
 	uint8_t id[EDID_LENGTH];
 	for (int i = 0; i < EDID_LENGTH; i++)
 		id[i] = edid.at(i);
@@ -243,7 +244,6 @@ void fitp_accepted_device(std::vector<uint8_t> edid)
  */
 bool fitp_unpair(uint32_t edid)
 {
-	printf("fitp_unpair()\n");
 	uint8_t id[EDID_LENGTH];
 	for (int i = EDID_LENGTH - 1; i >= 0; i--) {
 		id[i] = edid & 0xff;
@@ -254,7 +254,6 @@ bool fitp_unpair(uint32_t edid)
 
 uint64_t convert_array_to_number(uint8_t edid[4])
 {
-	printf("EDID: %02x %02x %02x %02x\n", edid[0], edid[1], edid[2], edid[3]);
 	uint64_t edid_number = 0;
 	for (uint8_t i = 0; i < EDID_LENGTH - 1; i++)
 	{
@@ -268,7 +267,6 @@ uint64_t convert_array_to_number(uint8_t edid[4])
 
 std::map<uint64_t, DeviceType> fitp_device_list()
 {
-	printf("fitp_device_list()\n");
 	std::map<uint64_t, DeviceType> device_info;
 	uint8_t edid[EDID_LENGTH] = {0xed, 0x00, 0x00, 0x02};
 	add_device (edid, 1, 0, false, false);
@@ -279,11 +277,11 @@ std::map<uint64_t, DeviceType> fitp_device_list()
 			uint64_t edid_number = convert_array_to_number(GLOBAL_STORAGE.devices[i].edid);
 			if (GLOBAL_STORAGE.devices[i].coord) {
 				device_info.emplace(edid_number, COORDINATOR);
-				printf("COORD was inserted\n");
+				//printf("COORD was inserted\n");
 			}
 			else {
 				device_info.emplace(edid_number, END_DEVICE);
-				printf("ED was inserted\n");
+				//printf("ED was inserted\n");
 			}
 		}
 	}
@@ -299,4 +297,22 @@ double fitp_get_measured_noise()
 void fitp_set_config_path(const std::string &configPath)
 {
 	GLOBAL_STORAGE.device_table_path = configPath;
+}
+
+bool isDataMessage(const std::vector <uint8_t> &data)
+{
+	return (data.at(0) == FITP_DATA || data.at(0) == FITP_DATA_DR);
+}
+
+bool isJoinMessage(const std::vector <uint8_t> &data)
+{
+	return data.at(0) == FITP_JOIN_REQUEST;
+}
+
+void fitp_set_nid(uint32_t nid)
+{
+	GLOBAL_STORAGE.nid[3] = (nid >> 24) & 0xFF;
+	GLOBAL_STORAGE.nid[2] = (nid >> 16) & 0xFF;
+	GLOBAL_STORAGE.nid[1] = (nid >> 8) & 0xFF;
+	GLOBAL_STORAGE.nid[0] = nid & 0xFF;
 }
