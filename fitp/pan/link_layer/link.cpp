@@ -653,8 +653,6 @@ void PHY_process_packet (uint8_t* data, uint8_t len)
 	if (len < LINK_HEADER_SIZE)
 		return;
 
-	LINK_save_msg_info(data + 10, len - 10);
-
 	uint8_t packet_type = data[0] >> 6;
 	uint8_t transfer_type = data[0] & 0x0f;
 	// JOIN packet processing before NID check
@@ -665,6 +663,9 @@ void PHY_process_packet (uint8_t* data, uint8_t len)
 			D_LINK printf("Not in a PAIR MODE!\n");
 			return;
 		}
+
+		LINK_save_msg_info(data + 10, len - 10);
+
 		uint8_t ack_packet[LINK_HEADER_SIZE];
 		gen_header (ack_packet, false, true, data + 6, LINK_ACK_TYPE,
 								LINK_ACK_JOIN_REQUEST);
@@ -679,6 +680,8 @@ void PHY_process_packet (uint8_t* data, uint8_t len)
 	// packet is not in my network
 	if (!array_cmp (data + 1, GLOBAL_STORAGE.nid))
 		return;
+
+	LINK_save_msg_info(data + 10, len - 10);
 
 	if (transfer_type == LINK_DATA_BROADCAST) {
 		D_LINK printf("BROADCAST received\n");
