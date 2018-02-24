@@ -22,6 +22,11 @@ void fitp_init (struct PHY_init_t* phy_params, struct LINK_init_t* link_params)
 	NET_init(phy_params, link_params);
 }
 
+void fitp_deinit ()
+{
+	NET_stop();
+}
+
 std::string fitp_version()
 {
 	return GIT_ID;

@@ -1404,3 +1404,8 @@ uint8_t NET_get_measured_noise()
 {
 	return LINK_get_measured_noise();
 }
+
+void NET_stop()
+{
+	LINK_stop();
+}

@@ -868,3 +868,8 @@ uint8_t LINK_get_measured_noise()
 {
 	return PHY_get_measured_noise();
 }
+
+void LINK_stop()
+{
+	PHY_stop();
+}

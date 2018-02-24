@@ -139,4 +139,6 @@ bool load_device_table();
 
 uint8_t NET_get_measured_noise();
 
+void NET_stop();
+
 #endif
