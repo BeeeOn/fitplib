@@ -54,9 +54,6 @@ enum DeviceType {
 	COORDINATOR,
 };
 
-std::deque<struct fitp_received_messages_t> received_messages;
-std::mutex received_messages_mutex;
-std::condition_variable condition_variable_received_messages;
 
 
 extern bool array_cmp (uint8_t* array1, uint8_t* array2);

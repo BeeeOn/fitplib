@@ -8,6 +8,10 @@
 #include "pan/global_storage/global.h"
 #include "fitp.h"
 
+std::deque<struct fitp_received_messages_t> received_messages;
+std::mutex received_messages_mutex;
+std::condition_variable condition_variable_received_messages;
+
 /**
  * Ensures initialization of network, link and physical layer.
  * @param phy_params		Parameters of physical layer.
