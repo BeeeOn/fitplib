@@ -98,4 +98,6 @@ extern void LINK_save_msg_info (uint8_t* data, uint8_t len);
 
 uint8_t LINK_get_measured_noise();
 
+void LINK_stop();
+
 #endif

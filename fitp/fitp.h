@@ -54,9 +54,6 @@ enum DeviceType {
 	COORDINATOR,
 };
 
-std::deque<struct fitp_received_messages_t> received_messages;
-std::mutex received_messages_mutex;
-std::condition_variable condition_variable_received_messages;
 
 
 extern bool array_cmp (uint8_t* array1, uint8_t* array2);
@@ -67,6 +64,12 @@ extern bool array_cmp (uint8_t* array1, uint8_t* array2);
  * @param link_params		Parameters of link layer.
  */
 void fitp_init (struct PHY_init_t *phy_params, struct LINK_init_t *link_params);
+
+/**
+ * Ensures deinitialization of network, link and physical layer.
+ * Releasing allocated resources and terminating running threads.
+ */
+void fitp_deinit ();
 
 /**
  * Returns a protocol version.
