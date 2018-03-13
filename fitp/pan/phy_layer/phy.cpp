@@ -82,8 +82,10 @@ void HW_irq1_occurred (void);
 // http://linux-sunxi.org/SPIdev
 // SPI bus 0, chipselect 0
 static const char *devspi_config = "/dev/spidev32766.0";
+static const char *devspi_config_new = "/dev/spidev0.0";
 // SPI bus 0, chipselect 1
 static const char *devspi_data = "/dev/spidev32766.1";
+static const char *devspi_data_new = "/dev/spidev0.1";
 static uint8_t mode = SPI_MODE_0;
 const uint8_t spi_bits_per_word = 8;
 const uint32_t spi_speed_hz = 1000000;
@@ -125,7 +127,10 @@ int spi_open_config (void)
 {
 	int fd = open (devspi_config, O_RDWR);
 	if (fd < 0) {
-		cerr << "Can't open SPI device!" << endl;
+		fd = open (devspi_config_new, O_RDWR);
+		if (fd < 0) {
+			cerr << "Can't open SPI device!" << endl;
+		}
 	}
 	return fd;
 }
@@ -135,7 +140,10 @@ int spi_open_data (void)
 	int fd = open (devspi_data, O_RDWR);
 
 	if (fd < 0) {
-		cerr << "Can't open SPI device!" << endl;
+		fd = open (devspi_data_new, O_RDWR);
+		if (fd < 0) {
+			cerr << "Can't open SPI device!" << endl;
+		}
 	}
 	if (ioctl (fd, SPI_IOC_WR_MODE, &mode) < 0) {
 		cerr << "Can't set spi mode!" << endl;
